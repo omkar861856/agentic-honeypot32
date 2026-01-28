@@ -12,12 +12,15 @@ import {
   MessageSquare,
   Zap,
   Trash2,
-  Database
+  Database,
+  User as UserIcon,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "../../components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { PERSONAS, Persona } from "@/lib/personas";
 
 interface Message {
   role: "scammer" | "victim";
@@ -45,6 +48,8 @@ export default function HoneypotPage() {
   const [isScamDetected, setIsScamDetected] = useState<boolean | null>(null);
   const [scamReason, setScamReason] = useState<string>("");
   const [conversationId, setConversationId] = useState<string>("");
+  const [selectedPersonaId, setSelectedPersonaId] = useState<string>(PERSONAS[1].id);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,19 +68,25 @@ export default function HoneypotPage() {
     }
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  const handleSend = async (messageToSend?: string) => {
+    const finalInput = messageToSend || input;
+    if (!finalInput.trim() || isLoading) return;
 
-    const scammerMessage = input;
-    setInput("");
+    const scammerMessage = finalInput;
+    if (!messageToSend) setInput("");
     setMessages((prev) => [...prev, { role: "scammer", content: scammerMessage }]);
     setIsLoading(true);
+    setSuggestions([]);
 
     try {
       const response = await fetch("/api/honeypot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: scammerMessage, conversationId }),
+        body: JSON.stringify({ 
+          message: scammerMessage, 
+          conversationId,
+          personaId: selectedPersonaId
+        }),
       });
 
       const data = await response.json();
@@ -97,6 +108,10 @@ export default function HoneypotPage() {
         setScamReason("");
         setMessages((prev) => [...prev, { role: "victim", content: data.reply || "No scam detected." }]);
       }
+
+      if (data.suggested_attacker_replies) {
+        setSuggestions(data.suggested_attacker_replies);
+      }
     } catch (error) {
       console.error("Error:", error);
       setMessages((prev) => [...prev, { role: "victim", content: "Error communicating with the honeypot." }]);
@@ -109,6 +124,7 @@ export default function HoneypotPage() {
     setConversationId("conv_" + uuidv4());
     setMessages([]);
     setScamReason("");
+    setSuggestions([]);
     setIntelligence({
       upi_ids: [],
       urls: [],
@@ -117,6 +133,8 @@ export default function HoneypotPage() {
     });
     setIsScamDetected(null);
   };
+
+  const currentPersona = PERSONAS.find(p => p.id === selectedPersonaId) || PERSONAS[1];
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 dark:bg-zinc-950 font-sans">
@@ -148,19 +166,37 @@ export default function HoneypotPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* Chat Panel */}
         <div className="flex-1 flex flex-col bg-slate-50 dark:bg-zinc-950">
-          <div className="p-4 border-b border-slate-200 dark:border-zinc-900 bg-white dark:bg-zinc-900 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-slate-400" />
-                <span className="text-sm font-medium text-slate-600 dark:text-zinc-300">Scammer Interaction (You)</span>
+          <div className="p-4 border-b border-slate-200 dark:border-zinc-900 bg-white dark:bg-zinc-900">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                  <UserIcon className="w-4 h-4 text-slate-400" />
+                  <span className="text-sm font-medium text-slate-600 dark:text-zinc-300">Select Victim Persona:</span>
+              </div>
+              {isScamDetected !== null && (
+                <Badge 
+                  className={`${isScamDetected ? 'bg-red-100 text-red-700 border-red-200' : 'bg-green-100 text-green-700 border-green-200'} transition-all duration-300 shadow-sm`}
+                >
+                  {isScamDetected ? <AlertTriangle className="w-3 h-3 mr-1" /> : <Shield className="w-3 h-3 mr-1" />}
+                  {isScamDetected ? 'SCAM DETECTED' : 'CLEAN MESSAGE'}
+                </Badge>
+              )}
             </div>
-            {isScamDetected !== null && (
-              <Badge 
-                className={`${isScamDetected ? 'bg-red-100 text-red-700 border-red-200' : 'bg-green-100 text-green-700 border-green-200'} transition-all duration-300 shadow-sm`}
-              >
-                {isScamDetected ? <AlertTriangle className="w-3 h-3 mr-1" /> : <Shield className="w-3 h-3 mr-1" />}
-                {isScamDetected ? 'SCAM DETECTED' : 'CLEAN MESSAGE'}
-              </Badge>
-            )}
+            
+            <div className="flex flex-wrap gap-2">
+              {PERSONAS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setSelectedPersonaId(p.id)}
+                  className={`px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all border ${
+                    selectedPersonaId === p.id
+                      ? "bg-indigo-600 text-white border-indigo-600 shadow-md scale-105"
+                      : "bg-white dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700 hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10"
+                  }`}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
           </div>
 
           <ScrollArea ref={scrollRef} className="flex-1 p-6">
@@ -168,9 +204,14 @@ export default function HoneypotPage() {
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-64 text-slate-400 space-y-4 border-2 border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl p-8">
                   <Zap className="w-12 h-12 opacity-20" />
-                  <p className="text-center text-sm font-medium">
-                  Initialize the simulation by sending a message as the &quot;Scammer&quot;.<br/>
-                    Try mentioning payments, KYC, or blocked accounts.
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-slate-600 dark:text-zinc-300 mb-1">Current Target: {currentPersona.name}</p>
+                    <p className="text-xs font-medium opacity-70">
+                      {currentPersona.description}
+                    </p>
+                  </div>
+                  <p className="text-center text-[11px] font-medium mt-4">
+                    Send a message to begin the simulation.
                   </p>
                 </div>
               )}
@@ -182,7 +223,7 @@ export default function HoneypotPage() {
                       : "bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-200 border border-slate-100 dark:border-zinc-800 rounded-tl-none ring-1 ring-black/5"
                   }`}>
                     <div className="text-[10px] mb-1 opacity-50 font-bold uppercase tracking-tighter">
-                      {m.role === "scammer" ? "Scammer Agent" : "Victim Persona"}
+                      {m.role === "scammer" ? "Scammer Agent" : `Victim (${currentPersona.name})`}
                     </div>
                     <p className="text-sm leading-relaxed">{m.content}</p>
                   </div>
@@ -203,17 +244,37 @@ export default function HoneypotPage() {
           </ScrollArea>
 
           <div className="p-6 bg-white dark:bg-zinc-900 border-t border-slate-200 dark:border-zinc-800 shadow-2xl">
-            <div className="max-w-3xl mx-auto flex gap-3">
-              <Input
-                placeholder="Type a scam message..."
-                value={input}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && handleSend()}
-                className="flex-1 bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 h-12 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-medium"
-              />
-              <Button onClick={handleSend} disabled={isLoading} className="h-12 w-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 dark:shadow-none transition-all group">
-                <Zap className={`w-5 h-5 group-hover:scale-110 transition-transform ${isLoading ? 'animate-pulse' : ''}`} />
-              </Button>
+            <div className="max-w-3xl mx-auto space-y-4">
+              {suggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest w-full mb-1 flex items-center gap-1">
+                    <Zap className="w-3 h-3" /> Autonomous Suggestions
+                  </span>
+                  {suggestions.map((s, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSend(s)}
+                      className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-xs hover:bg-indigo-100 dark:hover:bg-indigo-900/20 transition-all flex items-center gap-2 group"
+                    >
+                      {s}
+                      <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              <div className="flex gap-3">
+                <Input
+                  placeholder="Type a scam message..."
+                  value={input}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && handleSend()}
+                  className="flex-1 bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 h-12 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-medium"
+                />
+                <Button onClick={() => handleSend()} disabled={isLoading} className="h-12 w-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 dark:shadow-none transition-all group">
+                  <Zap className={`w-5 h-5 group-hover:scale-110 transition-transform ${isLoading ? 'animate-pulse' : ''}`} />
+                </Button>
+              </div>
             </div>
             <p className="text-center mt-3 text-[10px] text-slate-400 font-medium tracking-wide uppercase">
               AI Powered Honeypot • Mem0 Intelligence Integration

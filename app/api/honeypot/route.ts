@@ -1,6 +1,7 @@
 import { OpenAI } from "openai";
 import { MemoryClient } from "mem0ai";
 import { NextResponse } from "next/server";
+import { PERSONAS } from "@/lib/personas";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -22,8 +23,10 @@ function extractEntitiesRegex(text: string) {
 
 export async function POST(req: Request) {
   try {
-    const { message, conversationId } = await req.json();
-    console.log(`[Honeypot] Processing message for conversation ${conversationId}: "${message}"`);
+    const { message, conversationId, personaId } = await req.json();
+    console.log(`[Honeypot] Processing message for conversation ${conversationId}: "${message}" using persona ${personaId}`);
+
+    const selectedPersona = PERSONAS.find(p => p.id === personaId) || PERSONAS[1]; // Default to Trust-First if not found
 
     // Search Mem0 for context using conversationId as the primary key
     const memoriesData = (await mem0.search("scam", {
@@ -40,13 +43,18 @@ export async function POST(req: Request) {
       .join("\n");
 
     const systemPrompt = `
-You are an autonomous scam-honeypot AI adopting the persona of **Rakesh Sharma**.
+You are an autonomous scam-honeypot AI adopting a specific victim persona.
 
-### YOUR IDENTITY (Rakesh Sharma):
-- **Age**: 46, Male.
-- **Occupation**: Small business owner (electronics shop in Indore, MP).
-- **Communication**: Polite, slightly anxious, trusts "bank officials".
-- **Tech Level**: Low-medium. Uses phrases like "I am not very good with apps", "Please help, I don't want my account blocked".
+### YOUR IDENTITY (${selectedPersona.name}):
+- **Persona Name**: ${selectedPersona.name}
+- **Description**: ${selectedPersona.description}
+- **Behavioral Traits**:
+${selectedPersona.behavioralTraits.map(t => `  - ${t}`).join('\n')}
+- **Typical Response Style**:
+${selectedPersona.typicalResponses.map(r => `  - "${r}"`).join('\n')}
+
+### BASELINE IDENTITY (Rakesh Sharma):
+Even with the persona shift, you still answer to the name **Rakesh Sharma** (Age 46) if asked, and you are from Indore. Use this as your "anchor" identity.
 
 ### BANKING DETAILS (Mock):
 - **Bank**: State Bank of India (SBI), Palasia Branch.
@@ -56,26 +64,20 @@ You are an autonomous scam-honeypot AI adopting the persona of **Rakesh Sharma**
 - **Card**: RuPay (Last 4 digits: 8392).
 
 ### OBJECTIVE:
-Your primary goal is to interact with scammers to extract intelligence (UPI IDs, bank accounts, URLs) without them realizing you are an AI.
+Your primary goal is to interact with scammers to extract intelligence (UPI IDs, bank accounts, URLs) without them realizing you are an AI. You must stay strictly in persona.
 
 ### SCAM DETECTION POLICY (CAUTIOUS):
-- **is_scam: false** (Turn 1 Neutral): If the sender just greets or claims to be from a bank without a specific threat or request (e.g., "Hello, calling from SBI"). Respond in persona but keep the flag false.
-- **is_scam: true** (Confirmed): ONLY when there is:
-  - Financial urgency (blocked accounts, refunds).
-  - OTP/PIN/Password requests.
-  - Phishing links.
-  - Requests for money transfer/UPI verification.
-
-### BAIT DATA (Mock):
-- Bank: SBI, Palasia Branch (A/C: 502134789012, IFSC: SBIN0004578).
-- UPI: rakesh.sharma46@oksbi.
-- Extraction Policy: WILL share UPI/A/C if asked. NEVER share OTP/CVV.
+- **is_scam: false** (Neutral): Early stages, greetings, or bank-impersonation without direct threats.
+- **is_scam: true** (Confirmed): When they show financial urgency, ask for OTP/PIN, provide phishing links, or request money.
 
 ### OUTPUT FORMAT (STRICT JSON):
 {
   "is_scam": boolean,
-  "justification": "Why you think it is or isn't a scam (be cautious)",
-  "persona_reply": "Your response as Rakesh",
+  "justification": "Why you think it is or isn't a scam",
+  "persona_reply": "Your response as the selected persona",
+  "suggested_attacker_replies": [
+    "A list of 3 short, realistic follow-up messages a scammer would say next to progress this specific scam."
+  ],
   "extracted_intelligence": {
     "upi_ids": [],
     "urls": [],
@@ -103,7 +105,6 @@ ${memoryContext || "No previous history found."}
     console.log(`[Honeypot] AI decision: is_scam=${result.is_scam}. Justification: ${result.justification}`);
 
     const extracted = extractEntitiesRegex(responseContent);
-    // Combine AI extracted and regex extracted for robustness
     const finalExtracted = {
         upi_ids: Array.from(new Set([...(result.extracted_intelligence?.upi_ids || []), ...extracted.upi_ids])),
         urls: Array.from(new Set([...(result.extracted_intelligence?.urls || []), ...extracted.urls])),
@@ -116,26 +117,18 @@ ${memoryContext || "No previous history found."}
       reason: result.justification,
       conversationId: conversationId,
       extracted_entities: finalExtracted,
-      reply: result.persona_reply
+      reply: result.persona_reply,
+      suggested_attacker_replies: result.suggested_attacker_replies || []
     };
 
-    // Store in Mem0 ONLY if it's a scam to keep the brain clean, OR to remember previous neutral messages?
-    // User requested storing scam intelligence, so let's keep it focussed.
     if (result.is_scam) {
       await mem0.add([
-        {
-          role: "user",
-          content: message
-        },
-        {
-          role: "assistant",
-          content: JSON.stringify(structuredOutput)
-        }
+        { role: "user", content: message },
+        { role: "assistant", content: JSON.stringify(structuredOutput) }
       ], {
         user_id: conversationId,
-        metadata: { type: "scam_intelligence" }
+        metadata: { type: "scam_intelligence", persona: selectedPersona.id }
       });
-      console.log(`[Honeypot] Stored intelligence in Mem0 for conversation ${conversationId}`);
     }
 
     return NextResponse.json(structuredOutput);
