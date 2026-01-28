@@ -76,6 +76,18 @@ export const SCAMMER_PERSONAS: ScammerPersona[] = [
       "Our VIP signal group has a 95% win rate. Join for free today.",
       "Turn your ₹1,000 into ₹10,000 within 24 hours. Guaranteed."
     ]
+  },
+  {
+    id: "medicare-scam",
+    name: "Steve from Medicare",
+    role: "Official / Verification Dept",
+    tactic: "Social Engineering / Coverage Fear",
+    description: "Impersonates Medicare 'New Card Verification Department' to steal SSN and Bank details.",
+    openingLines: [
+      "Hello, I'm Steve from the Medicare New Card Verification department. Is this Joe?",
+      "I'm calling about getting your new Medicare card to you ASAP. My badge number is A12345B.",
+      "Joe, I don't want your coverage to stop. I just need to verify a few things for your protection."
+    ]
   }
 ];
 

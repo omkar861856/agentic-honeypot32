@@ -336,5 +336,19 @@ export const CYBER_HANDBOOK: Record<string, ScamHandbookEntry> = {
       "Never attend or engage with spam calls.",
       "Do not exceed the allowed limit of SIMs (9)."
     ]
+  },
+  "Medicare Card Scam": {
+    category: "Medicare Card Scam",
+    description: "Scammers claim to be from Medicare's new card department to steal SSN, DOB, and bank details.",
+    dos: [
+      "Wait for your card to arrive in the mail (Medicare won't call you about it).",
+      "Call 1-800-MEDICARE if you have questions about your card.",
+      "Keep your Medicare card safe like a credit card."
+    ],
+    donts: [
+      "Never give your SSN, bank info, or DOB to an unsolicited caller.",
+      "Medicare will never call you to sell you anything or verify info for a 'new' card.",
+      "Do not give out your 'badge number' if asked; it's a common scam tactic."
+    ]
   }
 };
