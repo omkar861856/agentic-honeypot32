@@ -47,6 +47,8 @@ export default function HoneypotPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isScamDetected, setIsScamDetected] = useState<boolean | null>(null);
   const [scamReason, setScamReason] = useState<string>("");
+  const [detectedTactic, setDetectedTactic] = useState<string>("");
+  const [safeguardTip, setSafeguardTip] = useState<string>("");
   const [conversationId, setConversationId] = useState<string>("");
   const [selectedPersonaId, setSelectedPersonaId] = useState<string>(PERSONAS[1].id);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -94,6 +96,8 @@ export default function HoneypotPage() {
       if (data.scam_detected) {
         setIsScamDetected(true);
         setScamReason(data.reason || "High risk patterns detected.");
+        setDetectedTactic(data.detected_tactic || "");
+        setSafeguardTip(data.safeguard_tip || "");
         setMessages((prev) => [...prev, { role: "victim", content: data.reply }]);
         
         // Update intelligence
@@ -106,6 +110,8 @@ export default function HoneypotPage() {
       } else {
         setIsScamDetected(false);
         setScamReason("");
+        setDetectedTactic("");
+        setSafeguardTip("");
         setMessages((prev) => [...prev, { role: "victim", content: data.reply || "No scam detected." }]);
       }
 
@@ -124,6 +130,8 @@ export default function HoneypotPage() {
     setConversationId("conv_" + uuidv4());
     setMessages([]);
     setScamReason("");
+    setDetectedTactic("");
+    setSafeguardTip("");
     setSuggestions([]);
     setIntelligence({
       upi_ids: [],
@@ -173,12 +181,20 @@ export default function HoneypotPage() {
                   <span className="text-sm font-medium text-slate-600 dark:text-zinc-300">Select Victim Persona:</span>
               </div>
               {isScamDetected !== null && (
-                <Badge 
-                  className={`${isScamDetected ? 'bg-red-100 text-red-700 border-red-200' : 'bg-green-100 text-green-700 border-green-200'} transition-all duration-300 shadow-sm`}
-                >
-                  {isScamDetected ? <AlertTriangle className="w-3 h-3 mr-1" /> : <Shield className="w-3 h-3 mr-1" />}
-                  {isScamDetected ? 'SCAM DETECTED' : 'CLEAN MESSAGE'}
-                </Badge>
+                <div className="flex gap-2">
+                  {detectedTactic && detectedTactic !== "None" && (
+                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 shadow-sm flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-amber-500" />
+                      {detectedTactic.toUpperCase()}
+                    </Badge>
+                  )}
+                  <Badge 
+                    className={`${isScamDetected ? 'bg-red-100 text-red-700 border-red-200' : 'bg-green-100 text-green-700 border-green-200'} transition-all duration-300 shadow-sm`}
+                  >
+                    {isScamDetected ? <AlertTriangle className="w-3 h-3 mr-1" /> : <Shield className="w-3 h-3 mr-1" />}
+                    {isScamDetected ? 'SCAM DETECTED' : 'CLEAN MESSAGE'}
+                  </Badge>
+                </div>
               )}
             </div>
             
@@ -289,10 +305,23 @@ export default function HoneypotPage() {
               <FileSearch className="w-4 h-4 text-indigo-500" />
               INTELLIGENCE EXTRACTED
             </h2>
-            {isScamDetected && scamReason && (
-              <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-xl">
-                <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">Reason for Detection</p>
-                <p className="text-[11px] text-red-700 dark:text-red-300 leading-tight">{scamReason}</p>
+            {isScamDetected && (
+              <div className="mt-4 space-y-3">
+                {scamReason && (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-xl">
+                    <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1">Reason for Detection</p>
+                    <p className="text-[11px] text-red-700 dark:text-red-300 leading-tight">{scamReason}</p>
+                  </div>
+                )}
+                {safeguardTip && (
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/20 rounded-xl animate-in fade-in slide-in-from-right-4 duration-500">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Shield className="w-3 h-3 text-indigo-500" />
+                      <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Handbook Insight</p>
+                    </div>
+                    <p className="text-[11px] text-indigo-700 dark:text-indigo-300 leading-tight italic">"{safeguardTip}"</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

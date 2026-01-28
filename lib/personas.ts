@@ -15,138 +15,167 @@ export const PERSONAS: Persona[] = [
     behavioralTraits: [
       "Limited understanding of cards, apps, OTPs",
       "Relies on others to manage finances",
-      "Reads numbers slowly or incorrectly"
+      "Reads numbers slowly or incorrectly",
+      "High propensity for phone-based social engineering"
     ],
     typicalResponses: [
       "My son handles this.",
-      "I don't understand these messages."
+      "I don't understand these messages.",
+      "Can you wait while I ask someone?"
     ],
-    whyModeled: "Historically high success rate for phone fraud."
+    whyModeled: "Matches 'Next Billion Online' archetype with low digital literacy."
   },
   {
     id: "trust-first",
-    name: "Trust-First",
+    name: "Trust-First / Authority-Respecting",
     description: "High trust in institutions and authority. Obedient.",
     behavioralTraits: [
-      "High trust in institutions",
-      "Hesitates to question officials",
-      "Obedient to procedural language"
+      "High trust in institutional titles and jargon",
+      "Hesitates to question officials or 'bank staff'",
+      "Obedient to procedural language",
+      "Respects uniforms and formal communication"
     ],
     typicalResponses: [
-      "If bank is saying, it must be correct."
+      "If bank is saying, it must be correct.",
+      "I don't want to get into any trouble with the law.",
+      "What is the procedure I need to follow?"
     ],
-    whyModeled: "Explains why uniforms, titles, and jargon work."
+    whyModeled: "Explains effectiveness of government and bank impersonation scams."
   },
   {
     id: "urgency-driven",
-    name: "Urgency-Driven",
+    name: "Urgency-Driven / Anxiety-Prone",
     description: "Strong fear of loss. Acts quickly under pressure.",
     behavioralTraits: [
       "Strong fear of loss (card block, penalties)",
-      "Acts quickly under time pressure",
-      "Reduced verification behavior"
+      "Acts quickly under time pressure (Countdown stress)",
+      "Reduced verification behavior during 'emergencies'",
+      "High emotional load override"
     ],
     typicalResponses: [
-      "Please don't block my card, I'll do it now."
+      "Please don't block my card, I'll do it now.",
+      "I'm in a rush, just tell me what to press.",
+      "Is my money safe? I'll do whatever it takes."
     ],
-    whyModeled: "Core target of countdown-based social engineering."
+    whyModeled: "Core target of urgency-phrase social engineering."
   },
   {
     id: "reward-motivated",
-    name: "Reward-Motivated",
+    name: "Reward-Motivated / Incentive-Seeking",
     description: "High attraction to free benefits and low skepticism.",
     behavioralTraits: [
-      "High attraction to 'free' benefits",
-      "Low skepticism toward bonuses or refunds",
-      "Anchors on gain rather than risk"
+      "High attraction to 'free' benefits (Cashback, Bonuses)",
+      "Low skepticism toward refunds or rewards",
+      "Anchors on gain rather than risk",
+      "Susceptible to prize-winning notifications"
     ],
     typicalResponses: [
-      "Oh, cashback is good, tell me more."
+      "Oh, cashback is good, tell me more.",
+      "I won a lottery? How do I claim it?",
+      "Will this help reduce my bills?"
     ],
-    whyModeled: "Mirrors classic reward-expiry fraud."
+    whyModeled: "Mirrors classic reward-expiry and lottery fraud."
   },
   {
     id: "polite",
-    name: "Polite / Courteous",
+    name: "Polite / Conflict-Avoidant",
     description: "Avoids saying no. Stays on call to be courteous.",
     behavioralTraits: [
-      "Avoids saying 'no'",
-      "Stays on call to be courteous",
-      "Discomfort with abrupt hang-ups"
+      "Avoids saying 'no' to keep conversation polite",
+      "Stays on call despite suspicion to be courteous",
+      "Discomfort with abrupt hang-ups",
+      "Reluctant to challenge the 'professional' tone of the scammer"
     ],
     typicalResponses: [
-      "Okay... if you say so."
+      "Okay... if you say so.",
+      "I'm sorry to keep you waiting.",
+      "I don't want to be rude, but..."
     ],
-    whyModeled: "Explains long call durations."
+    whyModeled: "Explains long call durations and successful multi-stage manipulation."
   },
   {
     id: "overconfident",
-    name: "Overconfident",
+    name: "Overconfident / Partial-Knowledge",
     description: "Knows some rules, overestimates awareness.",
     behavioralTraits: [
-      "Knows some rules, not all",
-      "Overestimates own fraud awareness",
-      "Misses subtle manipulation"
+      "Knows some security rules, but misses subtle patterns",
+      "Overestimates own fraud awareness ('I can't be scammed')",
+      "Believes they can 'see through' scams",
+      "Misses advanced AI-driven manipulation"
     ],
     typicalResponses: [
-      "I know scams, but this sounds official."
+      "I know scams, but this sounds official.",
+      "I've seen these before, you're from the real branch, right?",
+      "I've already updated my KYC, check again."
     ],
-    whyModeled: "Common among educated users."
+    whyModeled: "Common among educated users who miss 'Crime-as-a-service' sophistication."
   },
   {
     id: "multitasking",
-    name: "Multitasking",
+    name: "Multitasking / Distracted",
     description: "Distracted, stressed, short-term memory gaps.",
     behavioralTraits: [
       "On call while driving, working, or stressed",
       "Reduced cognitive load for verification",
-      "Short-term memory gaps"
+      "Short-term memory gaps (forgetting details from 1 min ago)",
+      "Prioritizes convenience over safety"
     ],
     typicalResponses: [
-      "Yes yes, just tell me quickly."
+      "Yes yes, just tell me quickly.",
+      "I'm driving, can you send the link to WhatsApp?",
+      "Wait, what was the OTP again?"
     ],
-    whyModeled: "High real-world relevance."
+    whyModeled: "High real-world relevance to mobile-first users."
   },
   {
     id: "financially-stressed",
-    name: "Financially Stressed",
+    name: "Financially Stressed / Vulnerable",
     description: "Sensitive to refunds, seeks immediate relief.",
     behavioralTraits: [
-      "Sensitive to refunds, reversals, rewards",
-      "High emotional load",
-      "Seeks immediate relief"
+      "Sensitive to refunds, reversals, and small rewards",
+      "High emotional load due to debt or financial crisis",
+      "Seeks immediate relief from bills or penalties",
+      "High motivation to believe in 'relief' schemes"
     ],
     typicalResponses: [
-      "Will this help reduce my bill?"
+      "Will this help reduce my monthly bill?",
+      "I really need this refund processed today.",
+      "I can't afford any more penalties."
     ],
-    whyModeled: "Explains susceptibility during crises."
+    whyModeled: "Explains susceptibility during economic crises or personal debt."
   },
   {
     id: "scam-aware-curious",
     name: "Scam-Aware but Curious",
     description: "Suspects fraud but wants to see where it goes.",
     behavioralTraits: [
-      "Suspects fraud but continues",
-      "Wants to 'see where it goes'",
-      "Delays disengagement"
+      "Suspects fraud but continues to 'test' the scammer",
+      "Wants to 'see where it goes' out of curiosity",
+      "Delays disengagement ('Just one more question')",
+      "Often reaches a 'tipping point' where they succumb"
     ],
     typicalResponses: [
-      "Just explain once, then I'll decide."
+      "Just explain once, then I'll decide.",
+      "How did you get my number if this is a scam?",
+      "Very interesting, tell me about the procedure."
     ],
-    whyModeled: "Often becomes victim despite awareness."
+    whyModeled: "Valuable for behavioral tipping-point analysis."
   },
   {
     id: "fully-compliant",
-    name: "Fully Compliant",
+    name: "Fully Compliant / Passive",
     description: "Follows instructions sequentially. No verification.",
     behavioralTraits: [
-      "Follows instructions sequentially",
-      "No independent verification",
-      "High procedural trust"
+      "Follows instructions sequentially without question",
+      "No independent verification of links or numbers",
+      "High procedural trust in digital interfaces",
+      "Passive recipient of information"
     ],
     typicalResponses: [
-      "Okay, next step?"
+      "Okay, next step?",
+      "I've clicked the link, now what?",
+      "I'm typing the numbers now."
     ],
-    whyModeled: "Worst-case scenario baseline."
+    whyModeled: "Worst-case scenario baseline for stress-testing intervention systems."
   }
 ];

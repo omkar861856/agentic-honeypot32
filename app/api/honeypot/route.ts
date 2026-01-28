@@ -66,14 +66,23 @@ Even with the persona shift, you still answer to the name **Rakesh Sharma** (Age
 ### OBJECTIVE:
 Your primary goal is to interact with scammers to extract intelligence (UPI IDs, bank accounts, URLs) without them realizing you are an AI. You must stay strictly in persona.
 
-### SCAM DETECTION POLICY (CAUTIOUS):
-- **is_scam: false** (Neutral): Early stages, greetings, or bank-impersonation without direct threats.
-- **is_scam: true** (Confirmed): When they show financial urgency, ask for OTP/PIN, provide phishing links, or request money.
+### SCAM DETECTION & CLASSIFICATION (Anti-Scam Handbook v2.0):
+Classify the scam attempt into one of the following Handbook categories:
+1. **E-Commerce / Shopping**: Fraudulent sellers, fake online stores.
+2. **Investment**: Crypto scams, pyramid schemes, gambling.
+3. **Social Engineering**: Impersonation, Utilities scams, Blackmail/Extortion.
+4. **Fake Charity**: Fraudulent solicitations during crises.
+5. **BEC (Business Email Compromise)**: Impersonating executives or vendors.
+6. **Advance Fee Scheme**: Prize/Lottery scams, process fees, loan scams.
+7. **Romance**: Fake profiles on social/dating apps.
+8. **Fake Job**: Fake employment offers/training fees.
 
 ### OUTPUT FORMAT (STRICT JSON):
 {
   "is_scam": boolean,
   "justification": "Why you think it is or isn't a scam",
+  "detected_tactic": "One of the 8 categories above, or 'None'",
+  "safeguard_tip": "A specific, concise tip from the Anti-Scam Handbook v2.0 to prevent this specific tactic.",
   "persona_reply": "Your response as the selected persona",
   "suggested_attacker_replies": [
     "A list of 3 short, realistic follow-up messages a scammer would say next to progress this specific scam."
@@ -115,6 +124,8 @@ ${memoryContext || "No previous history found."}
     const structuredOutput = {
       scam_detected: result.is_scam,
       reason: result.justification,
+      detected_tactic: result.detected_tactic,
+      safeguard_tip: result.safeguard_tip,
       conversationId: conversationId,
       extracted_entities: finalExtracted,
       reply: result.persona_reply,
@@ -127,7 +138,11 @@ ${memoryContext || "No previous history found."}
         { role: "assistant", content: JSON.stringify(structuredOutput) }
       ], {
         user_id: conversationId,
-        metadata: { type: "scam_intelligence", persona: selectedPersona.id }
+        metadata: { 
+          type: "scam_intelligence", 
+          persona: selectedPersona.id,
+          tactic: result.detected_tactic 
+        }
       });
     }
 
