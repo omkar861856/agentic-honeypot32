@@ -14,7 +14,9 @@ import {
   Trash2,
   Database,
   User as UserIcon,
-  ChevronRight
+  ChevronRight,
+  Play,
+  MousePointer2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -52,6 +54,7 @@ export default function HoneypotPage() {
   const [conversationId, setConversationId] = useState<string>("");
   const [selectedPersonaId, setSelectedPersonaId] = useState<string>(PERSONAS[1].id);
   const [selectedScammerPersonaId, setSelectedScammerPersonaId] = useState<string>("");
+  const [isAutoMode, setIsAutoMode] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -119,6 +122,13 @@ export default function HoneypotPage() {
 
       if (data.suggested_attacker_replies) {
         setSuggestions(data.suggested_attacker_replies);
+        
+        // Auto-Pilot Logic: Trigger next message after a delay if in Auto Mode
+        if (isAutoMode && data.suggested_attacker_replies.length > 0) {
+          setTimeout(() => {
+            handleSend(data.suggested_attacker_replies[0]);
+          }, 3000); // 3 second "thinking" delay
+        }
       }
     } catch (error) {
       console.error("Error:", error);
@@ -143,6 +153,7 @@ export default function HoneypotPage() {
     });
     setIsScamDetected(null);
     setSelectedScammerPersonaId("");
+    setIsAutoMode(false);
   };
 
   const handleScammerPersonaChange = (id: string) => {
@@ -168,12 +179,29 @@ export default function HoneypotPage() {
             Intelligence Engine
           </Badge>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl items-center border border-slate-200 dark:border-zinc-700">
+            <button 
+              onClick={() => setIsAutoMode(false)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${!isAutoMode ? 'bg-white dark:bg-zinc-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}
+            >
+              <MousePointer2 className="w-3.5 h-3.5" />
+              Manual
+            </button>
+            <button 
+              onClick={() => setIsAutoMode(true)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isAutoMode ? 'bg-white dark:bg-zinc-700 shadow-sm text-red-600 dark:text-red-400' : 'text-slate-500'}`}
+            >
+              <Play className="w-3.5 h-3.5" />
+              Auto-Pilot
+            </button>
+          </div>
+          <div className="h-8 w-[1px] bg-slate-200 dark:bg-zinc-800" />
           <Button variant="ghost" size="sm" onClick={resetSession} className="text-slate-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400">
             <Trash2 className="w-4 h-4 mr-2" />
             Reset Session
           </Button>
-          <div className="h-8 w-[1px] bg-slate-200 dark:bg-zinc-800 mx-2" />
+          <div className="h-8 w-[1px] bg-slate-200 dark:bg-zinc-800" />
           <div className="flex flex-col items-end">
              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">User ID</span>
              <span className="text-xs text-slate-600 dark:text-zinc-400 font-mono">{userId.slice(0, 8)}...</span>
@@ -244,11 +272,12 @@ export default function HoneypotPage() {
                           <button
                             key={s.id}
                             onClick={() => handleScammerPersonaChange(s.id)}
+                            disabled={isAutoMode && messages.length > 0}
                             className={`px-3 py-2 rounded-xl text-[11px] font-bold transition-all border flex flex-col items-center gap-1 w-32 ${
                               selectedScammerPersonaId === s.id
                                 ? "bg-red-600 text-white border-red-600 shadow-lg shadow-red-200 dark:shadow-none"
                                 : "bg-white dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700 hover:border-red-400"
-                            }`}
+                            } ${isAutoMode && messages.length > 0 ? "opacity-50 cursor-not-allowed" : ""}`}
                           >
                             <AlertTriangle className={`w-4 h-4 ${selectedScammerPersonaId === s.id ? "text-white" : "text-red-500"}`} />
                             {s.name}
@@ -259,7 +288,7 @@ export default function HoneypotPage() {
                   </div>
                   {selectedScammerPersonaId && (
                      <p className="text-center text-[11px] font-medium mt-4 text-red-500 animate-pulse">
-                        Attacker Persona Active: Use suggestions below to start.
+                        {isAutoMode ? "Auto-Pilot Active: Simulation will run automatically." : "Attacker Persona Active: Use suggestions below to start."}
                      </p>
                   )}
                   {!selectedScammerPersonaId && (
@@ -319,13 +348,14 @@ export default function HoneypotPage() {
               
               <div className="flex gap-3">
                 <Input
-                  placeholder="Type a scam message..."
+                  placeholder={isAutoMode ? "Auto-Pilot is managing responses..." : "Type a scam message..."}
                   value={input}
+                  disabled={isAutoMode}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
                   onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === "Enter" && handleSend()}
-                  className="flex-1 bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 h-12 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-medium"
+                  className={`flex-1 bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 h-12 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-medium ${isAutoMode ? 'opacity-50 grayscale' : ''}`}
                 />
-                <Button onClick={() => handleSend()} disabled={isLoading} className="h-12 w-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 dark:shadow-none transition-all group">
+                <Button onClick={() => handleSend()} disabled={isLoading || isAutoMode} className="h-12 w-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-200 dark:shadow-none transition-all group">
                   <Zap className={`w-5 h-5 group-hover:scale-110 transition-transform ${isLoading ? 'animate-pulse' : ''}`} />
                 </Button>
               </div>
