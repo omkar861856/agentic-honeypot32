@@ -70,12 +70,19 @@ ${isSuperAttacker ? `
 - **Tactics**:
 ${SUPER_ATTACKER_TRAITS.tactics.map(t => `  - ${t}`).join('\n')}
 - **Objective**: ${SUPER_ATTACKER_TRAITS.objective}
-The attacker is using hyper-sophisticated, nearly undetectable methods. Your suggestions for their next move must be extremely subtle and avoid all common scam triggers.
-` : scammerPersona ? `
+- **PAYLOAD GENERATION**: 
+  - Generate hyper-realistic URLs using domain masking (e.g., \`bitly.sh/sbi-verify\`, \`secure.bank-updates.co/auth\`).
+  - Use institutional case IDs (e.g., \`SBI/FRAUD-992/2026\`).
+  - Avoid all common scam triggers.
+The attacker is using hyper-sophisticated, nearly undetectable methods. Your suggestions for their next move must be extremely subtle.
+\` : scammerPersona ? \`
 The person you are talking to adopts the following persona:
-- **Role**: ${scammerPersona.role}
-- **Target Tactic**: ${scammerPersona.tactic}
-- **Description**: ${scammerPersona.description}
+- **Role**: \${scammerPersona.role}
+- **Target Tactic**: \${scammerPersona.tactic}
+- **Description**: \${scammerPersona.description}
+- **PAYLOAD GENERATION**: 
+  - Generate realistic URLs, reference numbers, and "leaked" details (e.g., "I see you are using an iPhone in Indore").
+  - Use urgency-driven IDs (e.g., \`TICKET-88219\`, \`ORDER-ID-992\`).
 Use this context to generate highly realistic suggested follow-up replies for the attacker.
 ` : "Standard attacker (Tone varies)."}
 
