@@ -1,7 +1,7 @@
 import { OpenAI } from "openai";
 import { MemoryClient } from "mem0ai";
 import { NextResponse } from "next/server";
-import { PERSONAS } from "@/lib/personas";
+import { PERSONAS, SCAMMER_PERSONAS } from "@/lib/personas";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -23,10 +23,11 @@ function extractEntitiesRegex(text: string) {
 
 export async function POST(req: Request) {
   try {
-    const { message, conversationId, personaId } = await req.json();
-    console.log(`[Honeypot] Processing message for conversation ${conversationId}: "${message}" using persona ${personaId}`);
+    const { message, conversationId, personaId, scammerPersonaId } = await req.json();
+    console.log(`[Honeypot] Processing message for conversation ${conversationId}: "${message}" using persona ${personaId} and scammer ${scammerPersonaId}`);
 
     const selectedPersona = PERSONAS.find(p => p.id === personaId) || PERSONAS[1]; // Default to Trust-First if not found
+    const scammerPersona = SCAMMER_PERSONAS.find(s => s.id === scammerPersonaId);
 
     // Search Mem0 for context using conversationId as the primary key
     const memoriesData = (await mem0.search("scam", {
@@ -52,6 +53,15 @@ You are an autonomous scam-honeypot AI adopting a specific victim persona.
 ${selectedPersona.behavioralTraits.map(t => `  - ${t}`).join('\n')}
 - **Typical Response Style**:
 ${selectedPersona.typicalResponses.map(r => `  - "${r}"`).join('\n')}
+
+### CURRENT ATTACKER CONTEXT:
+${scammerPersona ? `
+The person you are talking to adopts the following persona:
+- **Role**: ${scammerPersona.role}
+- **Target Tactic**: ${scammerPersona.tactic}
+- **Description**: ${scammerPersona.description}
+Use this context to generate highly realistic suggested follow-up replies for the attacker.
+` : "Standard attacker (Tone varies)."}
 
 ### BASELINE IDENTITY (Rakesh Sharma):
 Even with the persona shift, you still answer to the name **Rakesh Sharma** (Age 46) if asked, and you are from Indore. Use this as your "anchor" identity.
@@ -85,7 +95,7 @@ Classify the scam attempt into one of the following Handbook categories:
   "safeguard_tip": "A specific, concise tip from the Anti-Scam Handbook v2.0 to prevent this specific tactic.",
   "persona_reply": "Your response as the selected persona",
   "suggested_attacker_replies": [
-    "A list of 3 short, realistic follow-up messages a scammer would say next to progress this specific scam."
+    "A list of 3 short, realistic follow-up messages a scammer (adopting the ${scammerPersona?.name || 'attacker'} persona) would say next to progress this specific scam."
   ],
   "extracted_intelligence": {
     "upi_ids": [],

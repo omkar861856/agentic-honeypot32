@@ -7,6 +7,78 @@ export interface Persona {
   whyModeled: string;
 }
 
+export interface ScammerPersona {
+  id: string;
+  name: string;
+  role: string;
+  tactic: string;
+  description: string;
+  openingLines: string[];
+}
+
+export const SCAMMER_PERSONAS: ScammerPersona[] = [
+  {
+    id: "bank-official",
+    name: "Bank Security Dept",
+    role: "Official / Authority",
+    tactic: "Social Engineering / Urgency",
+    description: "Impersonates bank security to report 'unauthorized' transactions.",
+    openingLines: [
+      "This is SBI Security. An unauthorized transaction of ₹45,000 has been detected.",
+      "Your account is being blocked due to suspicious activity. Verify now.",
+      "Please confirm if you just authorized a payment to 'Global Crypto Exch'."
+    ]
+  },
+  {
+    id: "tech-support",
+    name: "IT Support Desk",
+    role: "Helper / Expert",
+    tactic: "Social Engineering / Tech Fraud",
+    description: "Offers technical help for a 'virus' or 'app update' found on the device.",
+    openingLines: [
+      "Microsoft support here. Your PC is sending error signals to our servers.",
+      "We found a malware infection in your mobile banking app. Fix it now.",
+      "Important security update required for your SBI Yono app."
+    ]
+  },
+  {
+    id: "romantic-interest",
+    name: "Romantic Connection",
+    role: "Friend / Partner",
+    tactic: "Romance / Emotional",
+    description: "Builds emotional trust to later ask for financial help for 'emergencies'.",
+    openingLines: [
+      "Hi! I finally got your number, you look so kind in your profile.",
+      "I'm feeling so lonely today, just wanted to say hello.",
+      "Do you believe in fate? I think we were meant to meet."
+    ]
+  },
+  {
+    id: "government-agent",
+    name: "Customs / Tax Agent",
+    role: "Law Enforcement",
+    tactic: "Social Engineering / Fear",
+    description: "Claims a package is seized or taxes are overdue to extort 'clearing fees'.",
+    openingLines: [
+      "This is Customs Department. A package in your name contains illegal items.",
+      "Your PAN card is suspended due to tax evasion. Pay penalty to avoid arrest.",
+      "CBI investigation has linked your account to a money laundering case."
+    ]
+  },
+  {
+    id: "crypto-advisor",
+    name: "Investment Guru",
+    role: "Wealth Expert",
+    tactic: "Investment / Reward",
+    description: "Promises high returns through crypto or stock 'insider' tips.",
+    openingLines: [
+      "I made $5,000 today from this simple crypto signal. Want in?",
+      "Our VIP signal group has a 95% win rate. Join for free today.",
+      "Turn your ₹1,000 into ₹10,000 within 24 hours. Guaranteed."
+    ]
+  }
+];
+
 export const PERSONAS: Persona[] = [
   {
     id: "digitally-naive",

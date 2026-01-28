@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "../../components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { PERSONAS, Persona } from "@/lib/personas";
+import { PERSONAS, Persona, SCAMMER_PERSONAS, ScammerPersona } from "@/lib/personas";
 
 interface Message {
   role: "scammer" | "victim";
@@ -51,6 +51,7 @@ export default function HoneypotPage() {
   const [safeguardTip, setSafeguardTip] = useState<string>("");
   const [conversationId, setConversationId] = useState<string>("");
   const [selectedPersonaId, setSelectedPersonaId] = useState<string>(PERSONAS[1].id);
+  const [selectedScammerPersonaId, setSelectedScammerPersonaId] = useState<string>("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -87,7 +88,8 @@ export default function HoneypotPage() {
         body: JSON.stringify({ 
           message: scammerMessage, 
           conversationId,
-          personaId: selectedPersonaId
+          personaId: selectedPersonaId,
+          scammerPersonaId: selectedScammerPersonaId
         }),
       });
 
@@ -140,6 +142,15 @@ export default function HoneypotPage() {
       ifsc_codes: [],
     });
     setIsScamDetected(null);
+    setSelectedScammerPersonaId("");
+  };
+
+  const handleScammerPersonaChange = (id: string) => {
+    setSelectedScammerPersonaId(id);
+    const persona = SCAMMER_PERSONAS.find(p => p.id === id);
+    if (persona && messages.length === 0) {
+      setSuggestions(persona.openingLines);
+    }
   };
 
   const currentPersona = PERSONAS.find(p => p.id === selectedPersonaId) || PERSONAS[1];
@@ -220,15 +231,42 @@ export default function HoneypotPage() {
               {messages.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-64 text-slate-400 space-y-4 border-2 border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl p-8">
                   <Zap className="w-12 h-12 opacity-20" />
-                  <div className="text-center">
-                    <p className="text-sm font-bold text-slate-600 dark:text-zinc-300 mb-1">Current Target: {currentPersona.name}</p>
-                    <p className="text-xs font-medium opacity-70">
+                  <div className="text-center max-w-md">
+                    <p className="text-sm font-bold text-slate-600 dark:text-zinc-300 mb-1">Target Victim: {currentPersona.name}</p>
+                    <p className="text-xs font-medium opacity-70 mb-4">
                       {currentPersona.description}
                     </p>
+                    
+                    <div className="pt-4 border-t border-slate-100 dark:border-zinc-800">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Choose Your Attacker Persona (Click & Play)</p>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        {SCAMMER_PERSONAS.map((s) => (
+                          <button
+                            key={s.id}
+                            onClick={() => handleScammerPersonaChange(s.id)}
+                            className={`px-3 py-2 rounded-xl text-[11px] font-bold transition-all border flex flex-col items-center gap-1 w-32 ${
+                              selectedScammerPersonaId === s.id
+                                ? "bg-red-600 text-white border-red-600 shadow-lg shadow-red-200 dark:shadow-none"
+                                : "bg-white dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700 hover:border-red-400"
+                            }`}
+                          >
+                            <AlertTriangle className={`w-4 h-4 ${selectedScammerPersonaId === s.id ? "text-white" : "text-red-500"}`} />
+                            {s.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-center text-[11px] font-medium mt-4">
-                    Send a message to begin the simulation.
-                  </p>
+                  {selectedScammerPersonaId && (
+                     <p className="text-center text-[11px] font-medium mt-4 text-red-500 animate-pulse">
+                        Attacker Persona Active: Use suggestions below to start.
+                     </p>
+                  )}
+                  {!selectedScammerPersonaId && (
+                    <p className="text-center text-[11px] font-medium mt-4">
+                      Or send a custom message to begin.
+                    </p>
+                  )}
                 </div>
               )}
               {messages.map((m, i) => (
