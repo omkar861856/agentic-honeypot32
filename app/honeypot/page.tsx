@@ -16,7 +16,9 @@ import {
   User as UserIcon,
   ChevronRight,
   Play,
-  MousePointer2
+  MousePointer2,
+  Crown,
+  Ghost
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -55,6 +57,8 @@ export default function HoneypotPage() {
   const [selectedPersonaId, setSelectedPersonaId] = useState<string>(PERSONAS[1].id);
   const [selectedScammerPersonaId, setSelectedScammerPersonaId] = useState<string>("");
   const [isAutoMode, setIsAutoMode] = useState(false);
+  const [isSuperAttacker, setIsSuperAttacker] = useState(false);
+  const [isSuperVictim, setIsSuperVictim] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -92,7 +96,9 @@ export default function HoneypotPage() {
           message: scammerMessage, 
           conversationId,
           personaId: selectedPersonaId,
-          scammerPersonaId: selectedScammerPersonaId
+          scammerPersonaId: selectedScammerPersonaId,
+          isSuperAttacker,
+          isSuperVictim
         }),
       });
 
@@ -154,6 +160,8 @@ export default function HoneypotPage() {
     setIsScamDetected(null);
     setSelectedScammerPersonaId("");
     setIsAutoMode(false);
+    setIsSuperAttacker(false);
+    setIsSuperVictim(false);
   };
 
   const handleScammerPersonaChange = (id: string) => {
@@ -196,6 +204,25 @@ export default function HoneypotPage() {
               Auto-Pilot
             </button>
           </div>
+          <div className="h-8 w-[1px] bg-slate-200 dark:bg-zinc-800" />
+          
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setIsSuperAttacker(!isSuperAttacker)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-tighter font-black transition-all border ${isSuperAttacker ? 'bg-zinc-900 text-red-500 border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)] animate-pulse' : 'bg-white dark:bg-zinc-800 text-slate-400 border-slate-200 dark:border-zinc-700 opacity-60'}`}
+            >
+              <Ghost className="w-3 h-3" />
+              Super Attacker
+            </button>
+            <button 
+              onClick={() => setIsSuperVictim(!isSuperVictim)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-tighter font-black transition-all border ${isSuperVictim ? 'bg-amber-900/10 text-amber-500 border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]' : 'bg-white dark:bg-zinc-800 text-slate-400 border-slate-200 dark:border-zinc-700 opacity-60'}`}
+            >
+              <Crown className="w-3 h-3" />
+              Super Victim
+            </button>
+          </div>
+
           <div className="h-8 w-[1px] bg-slate-200 dark:bg-zinc-800" />
           <Button variant="ghost" size="sm" onClick={resetSession} className="text-slate-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-400">
             <Trash2 className="w-4 h-4 mr-2" />
@@ -260,9 +287,11 @@ export default function HoneypotPage() {
                 <div className="flex flex-col items-center justify-center h-64 text-slate-400 space-y-4 border-2 border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl p-8">
                   <Zap className="w-12 h-12 opacity-20" />
                   <div className="text-center max-w-md">
-                    <p className="text-sm font-bold text-slate-600 dark:text-zinc-300 mb-1">Target Victim: {currentPersona.name}</p>
+                    <p className="text-sm font-bold text-slate-600 dark:text-zinc-300 mb-1">
+                      Target Victim: {currentPersona.name} {isSuperVictim && <span className="text-amber-500 ml-1">👑 (Super Mode)</span>}
+                    </p>
                     <p className="text-xs font-medium opacity-70 mb-4">
-                      {currentPersona.description}
+                      {isSuperVictim ? "High-Net-Worth individual with complex financial structures. Very difficult to crack." : currentPersona.description}
                     </p>
                     
                     <div className="pt-4 border-t border-slate-100 dark:border-zinc-800">

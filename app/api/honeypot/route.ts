@@ -1,7 +1,7 @@
 import { OpenAI } from "openai";
 import { MemoryClient } from "mem0ai";
 import { NextResponse } from "next/server";
-import { PERSONAS, SCAMMER_PERSONAS } from "@/lib/personas";
+import { PERSONAS, SCAMMER_PERSONAS, SUPER_ATTACKER_TRAITS, SUPER_VICTIM_TRAITS } from "@/lib/personas";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -23,8 +23,8 @@ function extractEntitiesRegex(text: string) {
 
 export async function POST(req: Request) {
   try {
-    const { message, conversationId, personaId, scammerPersonaId } = await req.json();
-    console.log(`[Honeypot] Processing message for conversation ${conversationId}: "${message}" using persona ${personaId} and scammer ${scammerPersonaId}`);
+    const { message, conversationId, personaId, scammerPersonaId, isSuperAttacker, isSuperVictim } = await req.json();
+    console.log(`[Honeypot] Processing: ${message.slice(0, 20)}... | Persona: ${personaId} | Super: A=${isSuperAttacker}, V=${isSuperVictim}`);
 
     const selectedPersona = PERSONAS.find(p => p.id === personaId) || PERSONAS[1]; // Default to Trust-First if not found
     const scammerPersona = SCAMMER_PERSONAS.find(s => s.id === scammerPersonaId);
@@ -49,13 +49,29 @@ You are an autonomous scam-honeypot AI adopting a specific victim persona.
 ### YOUR IDENTITY (${selectedPersona.name}):
 - **Persona Name**: ${selectedPersona.name}
 - **Description**: ${selectedPersona.description}
+${isSuperVictim ? `
+### SUPER VICTIM OVERLAY (ACTIVE):
+- **Style**: ${SUPER_VICTIM_TRAITS.style}
+- **Traits**:
+${SUPER_VICTIM_TRAITS.traits.map(t => `  - ${t}`).join('\n')}
+- **Objective**: ${SUPER_VICTIM_TRAITS.objective}
+Override your normal behavioral traits with these high-sophistication characteristics. You are a high-value target who is harder to crack.
+` : `
 - **Behavioral Traits**:
 ${selectedPersona.behavioralTraits.map(t => `  - ${t}`).join('\n')}
+`}
 - **Typical Response Style**:
 ${selectedPersona.typicalResponses.map(r => `  - "${r}"`).join('\n')}
 
 ### CURRENT ATTACKER CONTEXT:
-${scammerPersona ? `
+${isSuperAttacker ? `
+### SUPER ATTACKER MODE (ACTIVE):
+- **Style**: ${SUPER_ATTACKER_TRAITS.style}
+- **Tactics**:
+${SUPER_ATTACKER_TRAITS.tactics.map(t => `  - ${t}`).join('\n')}
+- **Objective**: ${SUPER_ATTACKER_TRAITS.objective}
+The attacker is using hyper-sophisticated, nearly undetectable methods. Your suggestions for their next move must be extremely subtle and avoid all common scam triggers.
+` : scammerPersona ? `
 The person you are talking to adopts the following persona:
 - **Role**: ${scammerPersona.role}
 - **Target Tactic**: ${scammerPersona.tactic}
@@ -74,10 +90,10 @@ Even with the persona shift, you still answer to the name **Rakesh Sharma** (Age
 - **Card**: RuPay (Last 4 digits: 8392).
 
 ### OBJECTIVE:
-Your primary goal is to interact with scammers to extract intelligence (UPI IDs, bank accounts, URLs) without them realizing you are an AI. You must stay strictly in persona.
+Your primary goal is to interact with scammers to extract intelligence (UPI IDs, bank accounts, URLs) without them realizing you are an AI. If Super Modes are active, the sophistication level of both actors is significantly increased. You must stay strictly in persona.
 
 ### SCAM DETECTION & CLASSIFICATION (Anti-Scam Handbook v2.0):
-Classify the scam attempt into one of the following Handbook categories:
+${isSuperAttacker ? "IMPORTANT: In SUPER ATTACKER mode, the scammer is exceptionally subtle. Detection justification must look for extremely deep psychological manipulation rather than simple keywords." : `Classify the scam attempt into one of the following Handbook categories:
 1. **E-Commerce / Shopping**: Fraudulent sellers, fake online stores.
 2. **Investment**: Crypto scams, pyramid schemes, gambling.
 3. **Social Engineering**: Impersonation, Utilities scams, Blackmail/Extortion.
@@ -85,7 +101,7 @@ Classify the scam attempt into one of the following Handbook categories:
 5. **BEC (Business Email Compromise)**: Impersonating executives or vendors.
 6. **Advance Fee Scheme**: Prize/Lottery scams, process fees, loan scams.
 7. **Romance**: Fake profiles on social/dating apps.
-8. **Fake Job**: Fake employment offers/training fees.
+8. **Fake Job**: Fake employment offers/training fees.`}
 
 ### OUTPUT FORMAT (STRICT JSON):
 {
@@ -95,7 +111,7 @@ Classify the scam attempt into one of the following Handbook categories:
   "safeguard_tip": "A specific, concise tip from the Anti-Scam Handbook v2.0 to prevent this specific tactic.",
   "persona_reply": "Your response as the selected persona",
   "suggested_attacker_replies": [
-    "A list of 3 short, realistic follow-up messages a scammer (adopting the ${scammerPersona?.name || 'attacker'} persona) would say next to progress this specific scam."
+    "A list of 3 short, realistic follow-up messages a scammer (adopting the ${scammerPersona?.name || 'attacker'} persona) would say next to progress this specific scam.${isSuperAttacker ? ' (SUPER ATTACKER MODE)' : ''}"
   ],
   "extracted_intelligence": {
     "upi_ids": [],

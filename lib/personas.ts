@@ -79,6 +79,28 @@ export const SCAMMER_PERSONAS: ScammerPersona[] = [
   }
 ];
 
+export const SUPER_ATTACKER_TRAITS = {
+  style: "Hyper-Sophisticated / Invisible",
+  tactics: [
+    "Uses zero-day social engineering (Deepfake-style language)",
+    "Avoids all common scam keywords (OTP, KYC, Blocked)",
+    "Uses complex institutional jargon and multi-stage build-up",
+    "Tailors hooks using 'leaked' personal metadata"
+  ],
+  objective: "Remain undetectable to automated security systems while maximizing psychological trust."
+};
+
+export const SUPER_VICTIM_TRAITS = {
+  style: "High-Net-Worth / Complex",
+  traits: [
+    "Institutional wealth management background",
+    "Extremely busy, delegates to 'assistants'",
+    "High cognitive load but low patience for technical hurdles",
+    "Uses premium banking tiers with specialized concierge services"
+  ],
+  objective: "Testing the hacker's ability to navigate complex, high-value corporate and personal portfolios."
+};
+
 export const PERSONAS: Persona[] = [
   {
     id: "digitally-naive",
