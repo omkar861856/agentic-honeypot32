@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import ThemeAwareLogo from "@/components/mem0/theme-aware-logo";
 import Link from "next/link";
 import GithubButton from "@/components/mem0/github-button";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const useUserId = () => {
   const [userId, setUserId] = useState<string>("");
@@ -63,47 +64,54 @@ export const Assistant = () => {
 
   return (
     <AssistantRuntimeProvider runtime={runtime}>
-      <div className={`bg-[#f8fafc] dark:bg-zinc-900 text-[#1e293b] ${isDarkMode ? "dark" : ""}`}>
-        <header className="h-16 border-b border-[#e2e8f0] flex items-center justify-between px-4 sm:px-6 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-white">
-          <div className="flex items-center">
-          <Link href="/" className="flex items-center">
-            <ThemeAwareLogo width={120} height={40} isDarkMode={isDarkMode} />
-          </Link>
-          </div>
-
-          <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => setSidebarOpen(true)}
-              className="text-[#475569] dark:text-zinc-300 md:hidden"
-            >
-              <AlignJustify size={24} className="md:hidden" />
-          </Button>
-
-
-          <div className="md:flex items-center hidden">
-            <button
-              className="p-2 rounded-full hover:bg-[#eef2ff] dark:hover:bg-zinc-800 text-[#475569] dark:text-zinc-300"
-              onClick={toggleDarkMode}
-              aria-label="Toggle theme"
-            >
-              {isDarkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
-            </button>
-            <GithubButton url="https://github.com/mem0ai/mem0/tree/main/examples" />
-
-            <Link href="/honeypot" className="py-1 ml-2 px-4 font-semibold text-[#475569] hover:text-indigo-600 transition-colors">
-              Honeypot
+      <TooltipProvider>
+        <div className={`bg-[#f8fafc] dark:bg-zinc-900 text-[#1e293b] ${isDarkMode ? "dark" : ""}`}>
+          <header className="h-16 border-b border-[#e2e8f0] flex items-center justify-between px-4 sm:px-6 bg-white dark:bg-zinc-900 dark:border-zinc-800 dark:text-white">
+            <div className="flex items-center">
+            <Link href="/" className="flex items-center">
+              <ThemeAwareLogo width={120} height={40} isDarkMode={isDarkMode} />
             </Link>
-            <Link href={"https://app.mem0.ai/"} target="_blank" className="py-1 ml-2 px-4 font-semibold dark:bg-zinc-100 dark:hover:bg-zinc-200 bg-zinc-800 text-white rounded-full hover:bg-zinc-900 dark:text-[#475569]">
-              Playground
-            </Link>
+            </div>
+
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setSidebarOpen(true)}
+                className="text-[#475569] dark:text-zinc-300 md:hidden"
+              >
+                <AlignJustify size={24} className="md:hidden" />
+            </Button>
+
+
+            <div className="md:flex items-center hidden">
+              <button
+                className="p-2 rounded-full hover:bg-[#eef2ff] dark:hover:bg-zinc-800 text-[#475569] dark:text-zinc-300"
+                onClick={toggleDarkMode}
+                aria-label="Toggle theme"
+              >
+                {isDarkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
+              </button>
+              <GithubButton url="https://github.com/mem0ai/mem0/tree/main/examples" />
+
+              <Link href="/honeypot" className="py-1 ml-2 px-4 font-semibold text-[#475569] hover:text-indigo-600 transition-colors">
+                Honeypot
+              </Link>
+              <Link href="/tester">
+                <Button variant="outline" size="sm" className="ml-2 rounded-full border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700">
+                  Tester UI
+                </Button>
+              </Link>
+              <Link href={"https://app.mem0.ai/"} target="_blank" className="py-1 ml-4 px-4 font-semibold dark:bg-zinc-100 dark:hover:bg-zinc-200 bg-zinc-800 text-white rounded-full hover:bg-zinc-900 dark:text-[#475569]">
+                  Playground
+              </Link>
+            </div>
+          </header>
+          <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-x-0 h-[calc(100dvh-4rem)]">
+            <ThreadList onResetUserId={resetUserId} isDarkMode={isDarkMode} />
+            <Thread sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} onResetUserId={resetUserId} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
           </div>
-        </header>
-        <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-x-0 h-[calc(100dvh-4rem)]">
-          <ThreadList onResetUserId={resetUserId} isDarkMode={isDarkMode} />
-          <Thread sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} onResetUserId={resetUserId} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
         </div>
-      </div>
+      </TooltipProvider>
     </AssistantRuntimeProvider>
   );
 };
